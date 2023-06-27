@@ -1,0 +1,13 @@
+
+#checks status of current migrations and database
+npx prisma migrate status
+
+#checks if the prisma.schema is properly defined
+npx prisma validate
+
+
+#push schema to db (doesnt need to exist) starts from scratch
+npx prisma db push
+
+#same as above but uses migrations
+npx prisma migrate dev --name init
