@@ -14,7 +14,7 @@ model Project {
   id  Int @id @default(autoincrement())
   name String
   url String @unique
-  parameters Parameters[]
+  cliParameters CLIParameters[]
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
@@ -24,8 +24,7 @@ enum TrackMode {
   Keys
 }
 
-model Parameters{
-  
+model CLIParameters{
   id Int @id  @default(autoincrement())
   project Project @relation(fields: [projectId],references: [id])
   projectId Int
@@ -45,5 +44,4 @@ model Parameters{
   outFileName String @default("out.mid")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 }
