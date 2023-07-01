@@ -1,14 +1,15 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 import {
   Project,
   ProjectWithParameters,
-  UnsavedProject,
-  UnsavedProjectSchema,
-  UpdateProjectSchema,
-  UpdatedProject,
+  createProjectInput,
+  CreateProjectInputSchema,
+  UpdateProjectInput,
+  UpdateProjectInputSchema,
 } from "../models/Project.js";
 
+let c: Prisma.ProjectCreateInput;
 const prisma = new PrismaClient();
 
 async function getAllProjects(): Promise<Project[]> {
@@ -24,21 +25,18 @@ async function getProject(id: number): Promise<ProjectWithParameters> {
       cliParameters: true,
     },
   });
-
   return project;
 }
 
-async function createProject(newProject: UnsavedProject) {
-  const validation = UnsavedProjectSchema.safeParse(newProject);
-  if (validation.success) {
-    await prisma.project.create({
-      data: { ...validation.data },
-    });
-  }
+async function createProject(newProject: createProjectInput) {
+  const project = CreateProjectInputSchema.parse(newProject);
+  await prisma.project.create({
+    data: { ...project },
+  });
 }
 
-async function updateProject(projectToUpdate: UpdatedProject): Promise<Project> {
-  const project = UpdateProjectSchema.parse(projectToUpdate);
+async function updateProject(projectToUpdate: UpdateProjectInput): Promise<Project> {
+  const project = UpdateProjectInputSchema.parse(projectToUpdate);
   const modifiedProject = await prisma.project.update({
     where: { id: project.id },
     data: { ...project },

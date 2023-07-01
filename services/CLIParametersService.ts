@@ -19,35 +19,25 @@ async function getCLIParameters(id: number): Promise<CLIParameters> {
 }
 
 async function createCLIParameters(newCLIParameters: UnsavedCLIParameters) {
-  const validation = UnsavedCLIParametersSchema.safeParse(newCLIParameters);
+  const cliParameters = UnsavedCLIParametersSchema.parse(newCLIParameters);
 
-  if (validation.success) {
-    await prisma.cLIParameters.create({
-      data: { ...newCLIParameters },
-    });
-  }
+  await prisma.cLIParameters.create({
+    data: { ...cliParameters },
+  });
 }
 
 async function updateCLIParameters(cliParametersToUpdate: UpdatedCLIParameters) {
-  try {
-    const cliParameters = UpdatedCLIParametersSchema.parse(cliParametersToUpdate);
-    await prisma.cLIParameters.update({
-      where: { id: cliParameters.id },
-      data: { ...cliParameters },
-    });
-  } catch (error) {
-    console.log(error);
-  }
+  const cliParameters = UpdatedCLIParametersSchema.parse(cliParametersToUpdate);
+  await prisma.cLIParameters.update({
+    where: { id: cliParameters.id },
+    data: { ...cliParameters },
+  });
 }
 
 async function deleteCLIParameters(id: number) {
-  try {
-    await prisma.cLIParameters.delete({
-      where: { id: id },
-    });
-  } catch (error) {
-    console.log(error);
-  }
+  await prisma.cLIParameters.delete({
+    where: { id: id },
+  });
 }
 
 export default {
