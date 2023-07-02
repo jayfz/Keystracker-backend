@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 import {
   Project,
@@ -9,7 +9,6 @@ import {
   UpdateProjectInputSchema,
 } from "../models/Project.js";
 
-let c: Prisma.ProjectCreateInput;
 const prisma = new PrismaClient();
 
 async function getAllProjects(): Promise<Project[]> {

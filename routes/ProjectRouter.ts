@@ -1,9 +1,8 @@
-import Express, { Request, Response, NextFunction } from "express";
+import Express from "express";
 import * as ProjectController from "../controllers/ProjectController.js";
 
 const ProjectRouter = Express.Router();
 
-//ProjectRouter.use(needsApplicationJSONHeader);
 ProjectRouter.get("/", ProjectController.getAll);
 ProjectRouter.get("/:id", ProjectController.getById);
 ProjectRouter.post("/", ProjectController.create);

@@ -10,13 +10,13 @@ import {
 
 const prisma = new PrismaClient();
 
-async function getAllCLIParameters(): Promise<CLIParameters[]> {
-  throw new Error("NotImplementedException");
-}
+// async function getAllCLIParameters(): Promise<CLIParameters[]> {
+//   throw new Error("NotImplementedException");
+// }
 
-async function getCLIParameters(id: number): Promise<CLIParameters> {
-  throw new Error("NotImplementedException");
-}
+// async function getCLIParameters(id: number): Promise<CLIParameters> {
+//   throw new Error("NotImplementedException");
+// }
 
 async function createCLIParameters(newCLIParameters: createCLIParametersInput) {
   const cliParameters = createCLIParametersInputSchema.parse(newCLIParameters);
@@ -26,7 +26,9 @@ async function createCLIParameters(newCLIParameters: createCLIParametersInput) {
   });
 }
 
-async function updateCLIParameters(cliParametersToUpdate: UpdateCLIParametersInput) {
+async function updateCLIParameters(
+  cliParametersToUpdate: UpdateCLIParametersInput
+): Promise<CLIParameters> {
   const cliParameters = UpdateCLIParametersInputSchema.parse(cliParametersToUpdate);
   const updatedCLIParameters = await prisma.cLIParameters.update({
     where: { id: cliParameters.id },

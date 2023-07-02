@@ -3,7 +3,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library.js";
-import { ZodError, ZodIssue } from "zod";
+import { ZodError } from "zod";
 
 function failureResult(payload: object | object[] | string | null = null) {
   return {
@@ -22,7 +22,7 @@ function errorResult(message: string) {
 function getZodErrorObject(error: ZodError) {
   const zodFormattedErrors = error.flatten();
 
-  let errors: string[] = [];
+  const errors: string[] = [];
 
   const formErrorField = zodFormattedErrors.formErrors.join(", also, ");
   if (formErrorField) errors.push(zodFormattedErrors.formErrors.join(", also, "));
