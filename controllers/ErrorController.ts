@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library.js";
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+} from "@prisma/client/runtime/library.js";
 import { ZodError, ZodIssue } from "zod";
 
 function failureResult(payload: object | object[] | string | null = null) {
@@ -21,7 +24,9 @@ function getZodErrorObject(error: ZodError) {
 
   let errors: string[] = [];
 
-  errors.push(zodFormattedErrors.formErrors.join(", also, "));
+  const formErrorField = zodFormattedErrors.formErrors.join(", also, ");
+  if (formErrorField) errors.push(zodFormattedErrors.formErrors.join(", also, "));
+
   for (const key in zodFormattedErrors.fieldErrors) {
     errors.push(
       `field error: [${key}] : ${(zodFormattedErrors.fieldErrors[key] as string[]).join(
@@ -33,19 +38,13 @@ function getZodErrorObject(error: ZodError) {
   return errors;
 }
 
-function formatedPrismaError(error: PrismaClientKnownRequestError): string {
-  if (error.meta) {
-    if ("target" in error.meta) {
-      const fields = (error.meta.target as Array<string>).join(",") || "";
-      return `constraint error on field(s): ${fields}`;
-    }
-
-    if ("cause" in error.meta) {
-      return error.meta.cause as string;
-    }
-  }
-
-  return error.message;
+function formatedPrismaError(
+  error: PrismaClientKnownRequestError | PrismaClientUnknownRequestError
+): string {
+  const formatted = error.message
+    .split("\n")
+    .filter((line) => !line.includes("invocation") && line.length != 0);
+  return formatted.join(",");
 }
 
 export function ErrorController(
@@ -58,19 +57,24 @@ export function ErrorController(
 
   if (error instanceof PrismaClientKnownRequestError) {
     errorHasBeenHandled = true;
-    const NotFoundErrorCode = "P2025";
-    const ConstraintViolation = "P2002";
+    const NotFound = "P2025";
+    const UniqueConstraintViolation = "P2002";
+    const ForeignKeyConstraintViolation = "P2003";
 
     switch (error.code) {
-      case NotFoundErrorCode:
+      case NotFound:
         response.status(404).send(failureResult(formatedPrismaError(error)));
         break;
-      case ConstraintViolation:
-        response.status(400).send(failureResult(formatedPrismaError(error)));
-        break;
+      case UniqueConstraintViolation:
+      case ForeignKeyConstraintViolation:
       default:
-        response.status(500).send(errorResult("Unknown transaction error."));
+        response.status(400).send(failureResult(formatedPrismaError(error)));
     }
+  }
+
+  if (error instanceof PrismaClientUnknownRequestError) {
+    errorHasBeenHandled = true;
+    response.status(500).send(errorResult(formatedPrismaError(error)));
   }
 
   if (error instanceof ZodError) {

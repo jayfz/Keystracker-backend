@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { DatabaseRecordSchema } from "./common.js";
+import { DatabaseRecordSchema, DatabaseIdSchema } from "./common.js";
 
 const hexColorRegex = new RegExp("#[0-9A-Fa-f]{6}", "g");
 
-export const UnsavedCLIParametersSchema = z.strictObject({
+export const createCLIParametersInputSchema = z.strictObject({
   projectId: z.number().int().positive(),
   inputVideoFilename: z.string().min(6),
   leftHandWhiteKeyColor: z.string().trim().toUpperCase().regex(hexColorRegex),
@@ -21,14 +21,12 @@ export const UnsavedCLIParametersSchema = z.strictObject({
   outFileName: z.string().trim().nonempty().optional(),
 });
 
-export const UpdatedCLIParametersSchema = UnsavedCLIParametersSchema.partial().and(
-  z.strictObject({
-    id: z.number(),
-  })
-);
+export const UpdateCLIParametersInputSchema = createCLIParametersInputSchema
+  .partial()
+  .merge(DatabaseIdSchema);
+export const CLIParametersSchema =
+  createCLIParametersInputSchema.merge(DatabaseRecordSchema);
 
-export const CLIParametersSchema = UnsavedCLIParametersSchema.and(DatabaseRecordSchema);
-
-export type UnsavedCLIParameters = z.infer<typeof UnsavedCLIParametersSchema>;
+export type createCLIParametersInput = z.infer<typeof createCLIParametersInputSchema>;
 export type CLIParameters = z.infer<typeof CLIParametersSchema>;
-export type UpdatedCLIParameters = z.infer<typeof UpdatedCLIParametersSchema>;
+export type UpdateCLIParametersInput = z.infer<typeof UpdateCLIParametersInputSchema>;

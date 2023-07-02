@@ -2,10 +2,10 @@ import { PrismaClient } from "@prisma/client";
 
 import {
   CLIParameters,
-  UnsavedCLIParameters,
-  UnsavedCLIParametersSchema,
-  UpdatedCLIParametersSchema,
-  UpdatedCLIParameters,
+  createCLIParametersInput,
+  createCLIParametersInputSchema,
+  UpdateCLIParametersInput,
+  UpdateCLIParametersInputSchema,
 } from "../models/CLIParameters.js";
 
 const prisma = new PrismaClient();
@@ -18,20 +18,22 @@ async function getCLIParameters(id: number): Promise<CLIParameters> {
   throw new Error("NotImplementedException");
 }
 
-async function createCLIParameters(newCLIParameters: UnsavedCLIParameters) {
-  const cliParameters = UnsavedCLIParametersSchema.parse(newCLIParameters);
+async function createCLIParameters(newCLIParameters: createCLIParametersInput) {
+  const cliParameters = createCLIParametersInputSchema.parse(newCLIParameters);
 
   await prisma.cLIParameters.create({
     data: { ...cliParameters },
   });
 }
 
-async function updateCLIParameters(cliParametersToUpdate: UpdatedCLIParameters) {
-  const cliParameters = UpdatedCLIParametersSchema.parse(cliParametersToUpdate);
-  await prisma.cLIParameters.update({
+async function updateCLIParameters(cliParametersToUpdate: UpdateCLIParametersInput) {
+  const cliParameters = UpdateCLIParametersInputSchema.parse(cliParametersToUpdate);
+  const updatedCLIParameters = await prisma.cLIParameters.update({
     where: { id: cliParameters.id },
     data: { ...cliParameters },
   });
+
+  return updatedCLIParameters;
 }
 
 async function deleteCLIParameters(id: number) {
