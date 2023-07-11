@@ -3,8 +3,9 @@ import { DatabaseRecordSchema, DatabaseIdSchema } from "./common.js";
 import { CLIParameters } from "./CLIParameters.js";
 
 export const CreateProjectInputSchema = z.strictObject({
-  name: z.string().trim().nonempty().min(3),
-  url: z.string().url().includes("youtube.com"),
+  name: z.string().trim().min(3),
+  url: z.string().trim().url().includes("youtube.com"),
+  thumbnail: z.string().nonempty().nullable().optional()
 });
 
 export const UpdateProjectInputSchema =

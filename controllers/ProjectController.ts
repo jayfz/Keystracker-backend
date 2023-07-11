@@ -15,8 +15,8 @@ export const getById = async (request: Request, response: Response) => {
 
 export const create = async (request: Request, response: Response) => {
   const project = request.body;
-  await ProjectService.createProject(project);
-  response.status(201).send(successResult());
+  const createdProject = await ProjectService.createProject(project);
+  response.status(201).send(successResult(createdProject));
 };
 
 export const update = async (request: Request, response: Response) => {

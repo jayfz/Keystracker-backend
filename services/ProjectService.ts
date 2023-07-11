@@ -27,11 +27,12 @@ async function getProject(id: number): Promise<ProjectWithParameters> {
   return project;
 }
 
-async function createProject(newProject: createProjectInput) {
+async function createProject(newProject: createProjectInput): Promise<Project> {
   const project = CreateProjectInputSchema.parse(newProject);
-  await prisma.project.create({
+  const createdProject = await prisma.project.create({
     data: { ...project },
   });
+  return createdProject;
 }
 
 async function updateProject(projectToUpdate: UpdateProjectInput): Promise<Project> {
