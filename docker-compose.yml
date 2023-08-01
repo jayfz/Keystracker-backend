@@ -15,6 +15,15 @@ services:
     ports:
       - "5432:5432"
     restart: always
+  redis:
+    image: redis:7.0.12-alpine
+    container_name: "redis_for_keystrakcer"
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - dbkeystracker:/data/redis_keystracker
+
 volumes:
   dbkeystracker:
     external: true
