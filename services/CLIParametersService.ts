@@ -21,7 +21,7 @@ const prisma = new PrismaClient();
 async function createCLIParameters(newCLIParameters: createCLIParametersInput) {
   const cliParameters = createCLIParametersInputSchema.parse(newCLIParameters);
 
-  await prisma.cLIParameters.create({
+  return await prisma.cLIParameters.create({
     data: { ...cliParameters },
   });
 }
