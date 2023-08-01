@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import ProjectService from "../services/ProjectService.js";
 import { validateId, successResult } from "./common.js";
+import { projectQueue } from "../integrations/ProjectQueue.js";
 
 export const getAll = async (request: Request, response: Response) => {
   const projects = await ProjectService.getAllProjects();
@@ -16,6 +17,7 @@ export const getById = async (request: Request, response: Response) => {
 export const create = async (request: Request, response: Response) => {
   const project = request.body;
   const createdProject = await ProjectService.createProject(project);
+  await projectQueue.add('process-project', createdProject, { jobId: `p${createdProject.id}` });
   response.status(201).send(successResult(createdProject));
 };
 

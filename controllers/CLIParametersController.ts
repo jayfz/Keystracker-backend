@@ -4,8 +4,8 @@ import { validateId, successResult } from "./common.js";
 
 export const create = async (request: Request, response: Response) => {
   const cliParameters = request.body;
-  await CLIParametersService.createCLIParameters(cliParameters);
-  response.status(201).send(successResult());
+  const createdCLIParameters = await CLIParametersService.createCLIParameters(cliParameters);
+  response.status(201).send(successResult(createdCLIParameters));
 };
 
 export const update = async (request: Request, response: Response) => {

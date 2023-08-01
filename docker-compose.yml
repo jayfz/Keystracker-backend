@@ -17,7 +17,7 @@ services:
     restart: always
   redis:
     image: redis:7.0.12-alpine
-    container_name: "redis_for_keystrakcer"
+    container_name: ${REDIS_CONTAINER_NAME}
     ports:
       - "6379:6379"
     restart: always
