@@ -8,6 +8,7 @@ import ProjectRouter from "./routes/ProjectRouter.js";
 import CLIParametersRouter from "./routes/CLIParametersRouter.js";
 import { ErrorController } from "./controllers/ErrorController.js";
 import { needsApplicationJSONHeader } from "./controllers/common.js";
+import { setupWebSocketServer } from "./integrations/WebsocketIntegration.js";
 
 dotenv.config();
 
@@ -31,4 +32,5 @@ app.use("/api/projects", ProjectRouter);
 app.use("/api/cli-parameters", CLIParametersRouter);
 app.use(ErrorController);
 
-app.listen(port);
+const expressServer = app.listen(port);
+setupWebSocketServer(expressServer);

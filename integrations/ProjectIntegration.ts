@@ -3,6 +3,10 @@ import  {spawn} from "node:child_process";
 import os from "node:os"
 
 
+const spawnedOptions = {
+    timeout : 60000
+}
+
 export async function createFileSystemProject(projectId: number){
 
     const homedir = os.homedir();
@@ -22,11 +26,9 @@ export function downloadVideo(videoUrl: string, outDir: string) : Promise<string
         "-o", videoPath
     ];
 
-    const spawned = spawn(ytdlp, parameters);
-
+    const spawned = spawn(ytdlp, parameters, spawnedOptions);
 
     return new Promise((resolve, reject) => {
-
         spawned.on("error", () => reject(`error downloading video ${videoUrl}`))
         spawned.on("exit", (code) => {
             if(code !== 0){
@@ -39,48 +41,23 @@ export function downloadVideo(videoUrl: string, outDir: string) : Promise<string
 
 export async function transcodeVideoToH264Codec(videoPath: string, outDir: string) : Promise<string>{
 
-    // console.log("this is the input.mp4 path ", videoPath);
-
-    // const exists = await fs.access(videoPath, fs.constants.F_OK);
-
-    // console.log("file exits? ", exists);
-
-    console.log("im insidde transcoding");
-
     const ffmpeg = "ffmpeg";
     const newVideoPath = `${outDir}/output.mp4`;
 
     const parameters = [
-        '-i', videoPath,
-        '-c:v', 'libx264',
-        '-crf', '23',
-        '-preset', 'medium',
-        '-c:a', 'aac',
-        '-b:a', '128k',
+        "-n",
+        "-i", videoPath,
+        "-c:v", "libx264",
+        "-crf", "23",
+        "-preset", "medium",
+        "-c:a", "aac",
+        "-b:a", "128k",
         newVideoPath
       ]
 
-      const spawned = spawn(ffmpeg, parameters);
-
-
-      
-      
-
+      const spawned = spawn(ffmpeg, parameters, spawnedOptions);
 
       return new Promise((resolve, reject) => {
-        spawned.on("spawn", () =>{
-            console.log("Im alive!", spawned.pid)
-            
-        })
-
-        spawned.stdout.on("data", (data) => {
-            console.log(`received chunk ${data}`)
-        })
-
-        spawned.stderr.on("data", (data) => {
-            console.log(`received err chunk ${data}`)
-        })
-
         spawned.on("error", () => reject(`error transcoding video ${videoPath}`))
         spawned.on("exit", (code) => {
             if(code !== 0){
@@ -97,6 +74,7 @@ export function extractH264StreamFromVideo(videoPath: string, outDir: string) : 
     const ffmpeg = "ffmpeg";
     const h264path = `${outDir}/output.h264`;
     const parameters = [
+        "-n",
         "-i", videoPath,
         "-c:v", "copy",
         "-bsf:v" , "h264_mp4toannexb",
@@ -104,8 +82,7 @@ export function extractH264StreamFromVideo(videoPath: string, outDir: string) : 
         h264path
     ]
 
-    const spawned = spawn(ffmpeg, parameters);
-
+    const spawned = spawn(ffmpeg, parameters, spawnedOptions);
     return new Promise((resolve, reject) => {
 
         spawned.on("error", () => reject(`error extracting h264 stream ${videoPath}`))
@@ -127,7 +104,7 @@ export function getVideoDurationInSeconds(videoPath: string) : Promise<number>{
         videoPath
     ]
 
-    const spawned = spawn(ffprobe, parameters);
+    const spawned = spawn(ffprobe, parameters, spawnedOptions);
     let stdoutText: null | string = null;
 
     return new Promise((resolve, reject) => {
@@ -170,7 +147,7 @@ export function getVideoFrameRate(videoPath: string) : Promise<number>{
         videoPath
     ];
 
-    const spawned = spawn(ffprobe, parameters);
+    const spawned = spawn(ffprobe, parameters, spawnedOptions);
     let stdoutText: null | string = null;
 
     return new Promise((resolve, reject) => {
@@ -196,9 +173,8 @@ export function getVideoFrameRate(videoPath: string) : Promise<number>{
                 return;
             }
 
-            console.log(stdoutText);
-            const frameRateString = stdoutText.split("/")[0];
-            const frameRate = parseInt(frameRateString);
+            const [numberator, denominator] = stdoutText.split("/");
+            const frameRate = Math.floor(parseInt(numberator) / parseInt(denominator));
 
             if(isNaN(frameRate)){
                 reject("could not determine frame rate");
@@ -216,15 +192,14 @@ export function extractVideoFrame(videoPath: string, frameNumber : number, outDi
     const outputFrameName = `${outDir}/frame-${frameNumber}.jpg`;
 
     const parameters = [
+        "-n",
         "-i", videoPath,
         "-vf", `select=eq(n\\,${frameNumber})`,
         "-vframes", "1",
         outputFrameName
     ]
 
-
-    const spawned = spawn(ffmpeg, parameters);
-
+    const spawned = spawn(ffmpeg, parameters, spawnedOptions);
 
     return new Promise((resolve, reject) => {
 
@@ -238,7 +213,6 @@ export function extractVideoFrame(videoPath: string, frameNumber : number, outDi
             resolve(outputFrameName);
         })
     })
-
 }
 
 function getRandomNumberUpTo(max: number){
