@@ -17,13 +17,13 @@ console.log("waiting", await projectQueue.getWaitingCount())
 console.log("failed", await projectQueue.getFailedCount())
 
 
-sendMessageToSubscribers(`
-    Waiting to be processed: ${await projectQueue.count()}.
-    Ongoing:" ${await projectQueue.getActiveCount()}.
-    Completed: ${await projectQueue.getCompletedCount()}
-    Waiting: ${await projectQueue.getWaitingCount()}
-    Failed: ${await projectQueue.getFailedCount()}
-`);
+// sendMessageToSubscribers(`
+//     Waiting to be processed: ${await projectQueue.count()}.
+//     Ongoing:" ${await projectQueue.getActiveCount()}.
+//     Completed: ${await projectQueue.getCompletedCount()}
+//     Waiting: ${await projectQueue.getWaitingCount()}
+//     Failed: ${await projectQueue.getFailedCount()}
+// `);
 
 // await projectQueue.drain()
 // await projectQueue.clean(0,100, "failed");
@@ -68,7 +68,7 @@ worker.on("error", (reason) => {
 worker.on("progress", (job, progress) => {
 
     if(typeof progress === "number" ){
-        const message = `progress for job ${job.id} with name ${job.data.name} is ${Math.floor(progress*100)}`;
+        const message = `Progress for job ${job.id} with name ${job.data.name} is ${Math.floor(progress*100)}`;
         sendMessageToSubscribers(message);
         console.log(message);
     }
