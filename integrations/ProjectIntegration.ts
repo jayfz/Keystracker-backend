@@ -287,8 +287,6 @@ export async function keystracker(cliParams: CLIParameters): Promise<string> {
     `--process-frames-divisible-by=${cliParams.processFramesDivisibleBy.toString()}`,
   ];
 
-  const bols = 3;
-
   const spawned = spawn(keystracker, parameters, { ...spawnedOptions, cwd: outDir });
 
   spawned.stdout.on("data", (data) => {

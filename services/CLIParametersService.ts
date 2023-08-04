@@ -37,7 +37,7 @@ async function updateCLIParameters(
   const cliParameters = UpdateCLIParametersInputSchema.parse(cliParametersToUpdate);
   const updatedCLIParameters = await prisma.cLIParameters.update({
     where: { id: id },
-    data: { ...cliParameters },
+    data: { ...cliParameters, status: "Enqueued" },
   });
 
   return updatedCLIParameters;

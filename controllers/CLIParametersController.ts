@@ -3,6 +3,7 @@ import CLIParametersService from "../services/CLIParametersService.js";
 import { failureResult, successResult } from "./common.js";
 import { ZDatabaseId } from "../models/common.js";
 import { cliInstanceQueue } from "../integrations/ProjectQueue.js";
+import { log } from "node:console";
 
 export const create = async (request: Request, response: Response) => {
   const cliParameters = request.body;
@@ -30,6 +31,13 @@ export const update = async (request: Request, response: Response) => {
     idTest.data,
     cliParameters
   );
+
+  await cliInstanceQueue.add("process-parameters", updatedProject, {
+    jobId: `c${updatedProject.id}`,
+  });
+
+  (await cliInstanceQueue.getJobs()).forEach((job) => console.log(job?.id));
+
   response.status(200).send(successResult(updatedProject));
 };
 

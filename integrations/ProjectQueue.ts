@@ -21,11 +21,19 @@ const redisConnection = {
 export const projectQueue = new Queue("projects", { connection: redisConnection });
 export const cliInstanceQueue = new Queue("cliInstance", { connection: redisConnection });
 
+console.log("project queue");
 console.log("waiting to be processed", await projectQueue.count());
 console.log("ongoing", await projectQueue.getActiveCount());
 console.log("completed", await projectQueue.getCompletedCount());
 console.log("waiting", await projectQueue.getWaitingCount());
 console.log("failed", await projectQueue.getFailedCount());
+
+console.log("cliInstanceQueue queue");
+console.log("waiting to be processed", await cliInstanceQueue.count());
+console.log("ongoing", await cliInstanceQueue.getActiveCount());
+console.log("completed", await cliInstanceQueue.getCompletedCount());
+console.log("waiting", await cliInstanceQueue.getWaitingCount());
+console.log("failed", await cliInstanceQueue.getFailedCount());
 
 // sendMessageToSubscribers(`
 //     Waiting to be processed: ${await projectQueue.count()}.
@@ -37,7 +45,8 @@ console.log("failed", await projectQueue.getFailedCount());
 
 // await projectQueue.drain()
 // await projectQueue.clean(0,100, "failed");
-//await projectQueue.obliterate();
+// await projectQueue.obliterate();
+// await cliInstanceQueue.obliterate();
 
 const projectWorker = new Worker<Project>(
   "projects",
@@ -70,7 +79,7 @@ const projectWorker = new Worker<Project>(
       frames,
     };
   },
-  { connection: redisConnection }
+  { connection: redisConnection, removeOnComplete: { count: 0 } }
 );
 
 projectWorker.on("failed", async (job, error) => {
@@ -108,6 +117,8 @@ projectQueue.on("error", (err) => {
 const cliparameterWorker = new Worker<CLIParameters>(
   "cliInstance",
   async (job: Job<CLIParameters>) => {
+    await CLIParametersService.updateCLIParametersProgress(job.data.id, "Processing");
+
     const projectId = job.data.projectId;
     const project = await ProjectService.getProject(projectId);
 
@@ -117,7 +128,7 @@ const cliparameterWorker = new Worker<CLIParameters>(
 
     await keystracker(job.data);
   },
-  { connection: redisConnection }
+  { connection: redisConnection, removeOnComplete: { count: 0 } }
 );
 
 cliparameterWorker.on("completed", async (job, result, prev) => {
