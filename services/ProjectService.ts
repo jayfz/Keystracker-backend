@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Status } from "@prisma/client";
 
 import {
   Project,
@@ -35,13 +35,26 @@ async function createProject(newProject: CreateProjectInput): Promise<Project> {
   return createdProject;
 }
 
-async function updateProject(id: number, projectToUpdate: UpdateProjectInput): Promise<Project> {
+async function updateProject(
+  id: number,
+  projectToUpdate: UpdateProjectInput
+): Promise<Project> {
   const project = UpdateProjectInputSchema.parse(projectToUpdate);
   const modifiedProject = await prisma.project.update({
     where: { id: id },
     data: { ...project },
   });
   return modifiedProject;
+}
+
+async function updateProjectProgress(
+  id: number,
+  status: Pick<Project, "status">["status"]
+) {
+  await prisma.project.update({
+    where: { id: id },
+    data: { status },
+  });
 }
 
 async function deleteProject(id: number) {
@@ -55,5 +68,6 @@ export default {
   getProject,
   createProject,
   updateProject,
+  updateProjectProgress,
   deleteProject,
 };
