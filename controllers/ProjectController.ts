@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import ProjectService from "../services/ProjectService.js";
-import { validateId, successResult } from "./common.js";
+import {  successResult, failureResult } from "./common.js";
 import { projectQueue } from "../integrations/ProjectQueue.js";
+import { ZDatabaseId } from "../models/common.js";
 
 export const getAll = async (request: Request, response: Response) => {
   const projects = await ProjectService.getAllProjects();
@@ -9,8 +10,14 @@ export const getAll = async (request: Request, response: Response) => {
 };
 
 export const getById = async (request: Request, response: Response) => {
-  const id = validateId(request.params.id);
-  const project = await ProjectService.getProject(id);
+  const idTest = ZDatabaseId.safeParse(request.params.id);
+
+  if(!idTest.success){
+    response.status(404).send(failureResult(idTest.error));
+    return;
+  }
+
+  const project = await ProjectService.getProject(idTest.data);
   response.status(200).send(successResult(project));
 };
 
@@ -22,14 +29,27 @@ export const create = async (request: Request, response: Response) => {
 };
 
 export const update = async (request: Request, response: Response) => {
+  const idTest = ZDatabaseId.safeParse(request.params.id);
+
+  if(!idTest.success){
+    response.status(404).send(failureResult(idTest.error));
+    return;
+  }
+
   const project = request.body;
-  project.id = validateId(request.params.id);
-  const UpdatedProject = await ProjectService.updateProject(project);
+  const UpdatedProject = await ProjectService.updateProject(idTest.data, project);
   response.status(200).send(successResult(UpdatedProject));
 };
 
 export const remove = async (request: Request, response: Response) => {
-  const id = validateId(request.params.id);
-  await ProjectService.deleteProject(id);
+
+  const idTest = ZDatabaseId.safeParse(request.params.id);
+
+  if(!idTest.success){
+    response.status(404).send(failureResult(idTest.error));
+    return;
+  }
+
+  await ProjectService.deleteProject(idTest.data);
   response.status(204).send(successResult());
 };

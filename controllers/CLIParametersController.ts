@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import CLIParametersService from "../services/CLIParametersService.js";
-import { validateId, successResult } from "./common.js";
+import { failureResult, successResult } from "./common.js";
+import { ZDatabaseId } from "../models/common.js";
 
 export const create = async (request: Request, response: Response) => {
   const cliParameters = request.body;
@@ -10,13 +11,26 @@ export const create = async (request: Request, response: Response) => {
 
 export const update = async (request: Request, response: Response) => {
   const cliParameters = request.body;
-  cliParameters.id = validateId(request.params.id);
-  const updatedProject = await CLIParametersService.updateCLIParameters(cliParameters);
+  const idTest = ZDatabaseId.safeParse(request.params.id);
+
+  if(!idTest.success){
+    response.status(404).send(failureResult(idTest.error));
+    return;
+  }
+
+  const updatedProject = await CLIParametersService.updateCLIParameters(idTest.data, cliParameters);
   response.status(200).send(successResult(updatedProject));
 };
 
 export const remove = async (request: Request, response: Response) => {
-  const id = validateId(request.params.id);
-  await CLIParametersService.deleteCLIParameters(id);
+
+  const idTest = ZDatabaseId.safeParse(request.params.id);
+
+  if(!idTest.success){
+    response.status(404).send(failureResult(idTest.error));
+    return;
+  }
+
+  await CLIParametersService.deleteCLIParameters(idTest.data);
   response.status(204).send(successResult());
 };

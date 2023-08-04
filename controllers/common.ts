@@ -1,4 +1,3 @@
-import { DatabaseIdSchema } from "../models/common.js";
 import { Response, Request, NextFunction } from "express";
 
 export function successResult(payload: object | object[] | null = null) {
@@ -8,8 +7,11 @@ export function successResult(payload: object | object[] | null = null) {
   };
 }
 
-export function validateId(id: string): number {
-  return DatabaseIdSchema.parse({ id: parseFloat(id) }).id;
+export function failureResult(payload: object | object[] | string | null = null) {
+  return {
+    status: "fail",
+    data: payload,
+  };
 }
 
 export function needsApplicationJSONHeader(

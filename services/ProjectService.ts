@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import {
   Project,
   ProjectWithParameters,
-  createProjectInput,
+  CreateProjectInput,
   CreateProjectInputSchema,
   UpdateProjectInput,
   UpdateProjectInputSchema,
@@ -27,7 +27,7 @@ async function getProject(id: number): Promise<ProjectWithParameters> {
   return project;
 }
 
-async function createProject(newProject: createProjectInput): Promise<Project> {
+async function createProject(newProject: CreateProjectInput): Promise<Project> {
   const project = CreateProjectInputSchema.parse(newProject);
   const createdProject = await prisma.project.create({
     data: { ...project },
@@ -35,10 +35,10 @@ async function createProject(newProject: createProjectInput): Promise<Project> {
   return createdProject;
 }
 
-async function updateProject(projectToUpdate: UpdateProjectInput): Promise<Project> {
+async function updateProject(id: number, projectToUpdate: UpdateProjectInput): Promise<Project> {
   const project = UpdateProjectInputSchema.parse(projectToUpdate);
   const modifiedProject = await prisma.project.update({
-    where: { id: project.id },
+    where: { id: id },
     data: { ...project },
   });
   return modifiedProject;

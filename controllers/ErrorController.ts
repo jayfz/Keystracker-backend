@@ -4,13 +4,9 @@ import {
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library.js";
 import { ZodError } from "zod";
+import { failureResult } from "./common.js";
 
-function failureResult(payload: object | object[] | string | null = null) {
-  return {
-    status: "fail",
-    data: payload,
-  };
-}
+
 
 function errorResult(message: string) {
   return {

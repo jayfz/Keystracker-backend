@@ -2,6 +2,7 @@ import { Job, Queue, Worker } from "bullmq";
 import { Project } from "../models/Project.js";
 import {createFileSystemProject, downloadVideo, extractH264StreamFromVideo, extractRandomVideoFrames, transcodeVideoToH264Codec} from "./ProjectIntegration.js"
 import { sendMessageToSubscribers } from "./WebsocketIntegration.js";
+import { CLIParameters } from "../models/CLIParameters.js";
 
 const redisConnection = {
     host: process.env.REDIS_CONNECTION_URL,
@@ -9,6 +10,7 @@ const redisConnection = {
 }
 
 export const projectQueue = new Queue("projects", {connection: redisConnection});
+export const cliInstanceQueue = new Queue("cliInstance",{connection: redisConnection} );
 
 console.log("waiting to be processed", await projectQueue.count())
 console.log("ongoing", await projectQueue.getActiveCount())
@@ -29,7 +31,7 @@ console.log("failed", await projectQueue.getFailedCount())
 // await projectQueue.clean(0,100, "failed");
 //await projectQueue.obliterate();
 
-const worker = new Worker<Project>("projects", async (job: Job<Project>) => {
+const projectWorker = new Worker<Project>("projects", async (job: Job<Project>) => {
 
     const project = job.data;
 
@@ -57,15 +59,15 @@ const worker = new Worker<Project>("projects", async (job: Job<Project>) => {
     }
 },{connection : redisConnection, })
 
-worker.on("failed", (job, error) => {
+projectWorker.on("failed", (job, error) => {
     console.error("Worker failed", job?.id, error);
 })
 
-worker.on("error", (reason) => {
+projectWorker.on("error", (reason) => {
     console.error("Worker failed", reason);
 })
 
-worker.on("progress", (job, progress) => {
+projectWorker.on("progress", (job, progress) => {
 
     if(typeof progress === "number" ){
         const message = `Progress for job ${job.id} with name ${job.data.name} is ${Math.floor(progress*100)}`;
@@ -74,8 +76,9 @@ worker.on("progress", (job, progress) => {
     }
 })
 
-worker.on("completed", (job, result, prev) => {
+projectWorker.on("completed", (job, result, prev) => {
     console.log(`Work completed for job ${job.id} with name ${job.data.name}`, result)
+
 })
 
 projectQueue.on("error", (err) => {
@@ -83,3 +86,17 @@ projectQueue.on("error", (err) => {
 
 })
 
+const cliparameterWorker =  new Worker<CLIParameters>("cliInstance", async (job: Job<CLIParameters>) => {
+
+    const cliParameters = job.data;
+
+    //1. check if project exists in db with status of finished
+    //2. await KeysTrackerShellProgram (pass cliparameters);
+
+
+    
+},{connection : redisConnection, })
+
+cliparameterWorker.on("completed", (job, result, prev) =>{
+    sendMessageToSubscribers(`cli job ${job.id} completed`);
+})

@@ -1,12 +1,14 @@
 import { z } from "zod";
 
-export const DatabaseIdSchema = z.strictObject({
-  id: z.number().int().positive(),
+const idMessage = {
+  message: "not a valid Id",
+};
+export const ZDatabaseId = z.coerce.number().int(idMessage).positive(idMessage);
+
+export const DatabaseRecordSchema = z.strictObject({
+  id: ZDatabaseId,
+  updatedAt: z.coerce.date(),
+  createdAt: z.coerce.date(),
 });
 
-export const DatabaseRecordSchema = DatabaseIdSchema.merge(
-  z.strictObject({
-    updatedAt: z.date(),
-    createdAt: z.date(),
-  })
-);
+export type DatabaseRecord = z.infer<typeof DatabaseRecordSchema>;

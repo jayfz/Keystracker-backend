@@ -27,11 +27,11 @@ async function createCLIParameters(newCLIParameters: createCLIParametersInput) {
 }
 
 async function updateCLIParameters(
-  cliParametersToUpdate: UpdateCLIParametersInput
+  id: number, cliParametersToUpdate: UpdateCLIParametersInput
 ): Promise<CLIParameters> {
   const cliParameters = UpdateCLIParametersInputSchema.parse(cliParametersToUpdate);
   const updatedCLIParameters = await prisma.cLIParameters.update({
-    where: { id: cliParameters.id },
+    where: { id: id},
     data: { ...cliParameters },
   });
 

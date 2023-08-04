@@ -1,32 +1,28 @@
 import { z } from "zod";
-import { DatabaseRecordSchema, DatabaseIdSchema } from "./common.js";
+import { DatabaseRecordSchema, ZDatabaseId } from "./common.js";
 
 const hexColorRegex = new RegExp("#[0-9A-Fa-f]{6}", "g");
 
 export const createCLIParametersInputSchema = z.strictObject({
-  projectId: z.number().int().positive(),
-  inputVideoFilename: z.string().min(6),
+  projectId: ZDatabaseId,
   leftHandWhiteKeyColor: z.string().trim().toUpperCase().regex(hexColorRegex),
   leftHandBlackKeyColor: z.string().trim().toUpperCase().regex(hexColorRegex),
   rightHandWhiteKeyColor: z.string().trim().toUpperCase().regex(hexColorRegex),
   rightHandBlackKeyColor: z.string().trim().toUpperCase().regex(hexColorRegex),
-  firstOctaveAt: z.number().int().positive(),
-  octavesLength: z.number().int().positive(),
-  numberOfOctaves: z.number().int().positive(),
-  rawFrameLinesToExtract: z.number().int().positive(),
-  rawFrameCopyFromLine: z.number().int().positive(),
+  firstOctaveAt: z.coerce.number().int().positive(),
+  octavesLength: z.coerce.number().int().positive(),
+  numberOfOctaves: z.coerce.number().int().positive(),
+  rawFrameLinesToExtract: z.coerce.number().int().positive(),
+  rawFrameCopyFromLine: z.coerce.number().int().positive(),
   trackMode: z.enum(["FallingNotes", "Keys"]),
-  numberOfFramesToSkip: z.number().int().positive(),
-  processFramesDivisibleBy: z.number().int().positive().optional(),
-  outFileName: z.string().trim().nonempty().optional(),
+  numberOfFramesToSkip: z.coerce.number().int().positive(),
+  processFramesDivisibleBy: z.coerce.number().int().positive()
 });
 
-export const UpdateCLIParametersInputSchema = createCLIParametersInputSchema
-  .partial()
-  .merge(DatabaseIdSchema);
-export const CLIParametersSchema =
-  createCLIParametersInputSchema.merge(DatabaseRecordSchema);
+export const UpdateCLIParametersInputSchema = createCLIParametersInputSchema.omit({projectId: true}).partial()
 
-export type createCLIParametersInput = z.infer<typeof createCLIParametersInputSchema>;
-export type CLIParameters = z.infer<typeof CLIParametersSchema>;
+export const CLIParametersSchema = createCLIParametersInputSchema.merge(DatabaseRecordSchema).merge(z.strictObject({ status: z.enum(["Enqueued", "Processing", "Failed", "Completed"])}));
+
+export type CreateCLIParametersInput = z.infer<typeof createCLIParametersInputSchema>;
 export type UpdateCLIParametersInput = z.infer<typeof UpdateCLIParametersInputSchema>;
+export type CLIParameters = z.infer<typeof CLIParametersSchema>;

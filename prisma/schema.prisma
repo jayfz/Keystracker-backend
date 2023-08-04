@@ -10,14 +10,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Status {
+  Enqueued
+  Processing
+  Failed
+  Completed
+}
+
 model Project {
-  id  Int @id @default(autoincrement())
-  name String
-  url String @unique
-  thumbnail String?
+  id            Int             @id @default(autoincrement())
+  name          String
+  url           String          @unique
+  status        Status          @default(Enqueued)
+  thumbnail     String?
   cliParameters CLIParameters[]
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
+  updatedAt     DateTime        @updatedAt
+  createdAt     DateTime        @default(now())
 }
 
 enum TrackMode {
@@ -25,24 +33,23 @@ enum TrackMode {
   Keys
 }
 
-model CLIParameters{
-  id Int @id  @default(autoincrement())
-  project Project @relation(fields: [projectId],references: [id])
-  projectId Int
-  inputVideoFilename String
-  leftHandWhiteKeyColor String
-  leftHandBlackKeyColor String
-  rightHandWhiteKeyColor String
-  rightHandBlackKeyColor String
-  firstOctaveAt Int
-  octavesLength Int
-  numberOfOctaves Int
-  rawFrameLinesToExtract Int
-  rawFrameCopyFromLine Int
-  trackMode TrackMode @default(FallingNotes)
-  numberOfFramesToSkip Int @default(5)
-  processFramesDivisibleBy Int @default(1)
-  outFileName String @default("out.mid")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model CLIParameters {
+  id                       Int       @id @default(autoincrement())
+  project                  Project   @relation(fields: [projectId], references: [id])
+  projectId                Int
+  status                   Status    @default(Enqueued)
+  leftHandWhiteKeyColor    String
+  leftHandBlackKeyColor    String
+  rightHandWhiteKeyColor   String
+  rightHandBlackKeyColor   String
+  firstOctaveAt            Int
+  octavesLength            Int
+  numberOfOctaves          Int
+  rawFrameLinesToExtract   Int
+  rawFrameCopyFromLine     Int
+  trackMode                TrackMode @default(FallingNotes)
+  numberOfFramesToSkip     Int       @default(5)
+  processFramesDivisibleBy Int       @default(1)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 }
