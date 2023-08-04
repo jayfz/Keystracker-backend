@@ -6,8 +6,6 @@ import {
 import { ZodError } from "zod";
 import { failureResult } from "./common.js";
 
-
-
 function errorResult(message: string) {
   return {
     status: "error",
