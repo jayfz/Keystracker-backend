@@ -52,7 +52,7 @@ const projectWorker = new Worker<Project>(
   "projects",
   async (job: Job<Project>) => {
     const project = job.data;
-    await ProjectService.updateProjectProgress(project.id, "Processing");
+    await ProjectService.updateProjectProgress(project.id, "Processing", []);
     const projectPath = await createFileSystemProject(project.id);
     await job.updateProgress(1 / 5);
 
@@ -86,7 +86,7 @@ projectWorker.on("failed", async (job, error) => {
   console.error("Worker failed", job?.id, error);
 
   if (job?.data.id) {
-    await ProjectService.updateProjectProgress(job.data.id, "Failed");
+    await ProjectService.updateProjectProgress(job.data.id, "Failed", []);
   }
 });
 
@@ -106,8 +106,8 @@ projectWorker.on("progress", (job, progress) => {
 
 projectWorker.on("completed", async (job, result, prev) => {
   console.log(`Work completed for job ${job.id} with name ${job.data.name}`, result);
-
-  await ProjectService.updateProjectProgress(job.data.id, "Completed");
+  const frames = result.frames ? result.frames : [];
+  await ProjectService.updateProjectProgress(job.data.id, "Completed", frames);
 });
 
 projectQueue.on("error", (err) => {

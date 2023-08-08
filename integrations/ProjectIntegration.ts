@@ -200,7 +200,8 @@ export function extractVideoFrame(
   outDir: string
 ): Promise<string> {
   const ffmpeg = "ffmpeg";
-  const outputFrameName = `${outDir}/frame-${frameNumber}.jpg`;
+  const filename = `frame-${frameNumber}.jpg`;
+  const outputFrameName = `${outDir}/${filename}`;
 
   const parameters = [
     "-n",
@@ -227,7 +228,7 @@ export function extractVideoFrame(
         return;
       }
 
-      resolve(outputFrameName);
+      resolve(filename);
     });
   });
 }
@@ -244,6 +245,7 @@ export async function extractRandomVideoFrames(videoPath: string, outDir: string
     const frameNumbers = new Set<number>();
     const half = approximatedTotalFrames / 2;
 
+    frameNumbers.add(1); // always generate frame #1, i.e the thumbnail
     while (frameNumbers.size != 5) {
       frameNumbers.add(getRandomNumberUpTo(half));
     }

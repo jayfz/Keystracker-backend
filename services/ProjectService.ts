@@ -49,11 +49,12 @@ async function updateProject(
 
 async function updateProjectProgress(
   id: number,
-  status: Pick<Project, "status">["status"]
+  status: Pick<Project, "status">["status"],
+  thumbnails: Pick<Project, "thumbnails">["thumbnails"]
 ) {
   await prisma.project.update({
     where: { id: id },
-    data: { status },
+    data: { status, thumbnails },
   });
 }
 

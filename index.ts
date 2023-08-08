@@ -9,8 +9,12 @@ import CLIParametersRouter from "./routes/CLIParametersRouter.js";
 import { ErrorController } from "./controllers/ErrorController.js";
 import { needsApplicationJSONHeader } from "./controllers/common.js";
 import { setupWebSocketServer } from "./integrations/WebsocketIntegration.js";
+import path from "node:path";
+import os from "node:os";
 
 dotenv.config();
+
+const imageDir = path.join(os.homedir(), "Downloads/KeystrackerProjects");
 
 const app = express();
 const port = process.env.PORT;
@@ -30,6 +34,8 @@ app.get("/", function (request: Request, response: Response) {
 });
 app.use("/api/projects", ProjectRouter);
 app.use("/api/cli-parameters", CLIParametersRouter);
+app.use("/public", express.static(imageDir, { dotfiles: "deny" }));
+
 app.use(ErrorController);
 
 const expressServer = app.listen(port);
