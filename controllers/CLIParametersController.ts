@@ -3,7 +3,6 @@ import CLIParametersService from "../services/CLIParametersService.js";
 import { failureResult, successResult } from "./common.js";
 import { ZDatabaseId } from "../models/common.js";
 import { cliInstanceQueue } from "../integrations/ProjectQueue.js";
-import { log } from "node:console";
 
 export const create = async (request: Request, response: Response) => {
   const cliParameters = request.body;
