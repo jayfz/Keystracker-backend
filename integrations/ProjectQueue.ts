@@ -8,7 +8,7 @@ import {
   keystracker,
   transcodeVideoToH264Codec,
 } from "./ProjectIntegration.js";
-import { sendMessageToSubscribers } from "./WebsocketIntegration.js";
+import { ServerStatus, sendMessageToSubscribers } from "./WebsocketIntegration.js";
 import { CLIParameters } from "../models/CLIParameters.js";
 import ProjectService from "../services/ProjectService.js";
 import CLIParametersService from "../services/CLIParametersService.js";
@@ -88,6 +88,13 @@ projectWorker.on("failed", async (job, error) => {
   if (job?.data.id) {
     await ProjectService.updateProjectProgress(job.data.id, "Failed", []);
   }
+
+  const failedStatus: ServerStatus = {
+    status: "Failed",
+    message: `Job with id ${job?.id} failed`,
+  };
+
+  sendMessageToSubscribers(failedStatus);
 });
 
 projectWorker.on("error", (reason) => {
@@ -96,10 +103,16 @@ projectWorker.on("error", (reason) => {
 
 projectWorker.on("progress", (job, progress) => {
   if (typeof progress === "number") {
-    const message = `Progress for job ${job.id} with name ${
-      job.data.name
-    } is ${Math.floor(progress * 100)}`;
-    sendMessageToSubscribers(message);
+    const progressPercentage = Math.floor(progress * 100);
+    const message = `Progress for job ${job.id} with name ${job.data.name} is ${progressPercentage}`;
+
+    const progressStatus: ServerStatus = {
+      status: "Processing",
+      message: `Job with id ${job?.id} is currently running`,
+      progress: progressPercentage,
+    };
+
+    sendMessageToSubscribers(progressStatus);
     console.log(message);
   }
 });
@@ -108,6 +121,13 @@ projectWorker.on("completed", async (job, result, prev) => {
   console.log(`Work completed for job ${job.id} with name ${job.data.name}`, result);
   const frames = result.frames ? result.frames : [];
   await ProjectService.updateProjectProgress(job.data.id, "Completed", frames);
+
+  const completedStatus: ServerStatus = {
+    status: "Completed",
+    message: `Job with id ${job?.id} has completed. You may start adding CLI parameters`,
+  };
+
+  sendMessageToSubscribers(completedStatus);
 });
 
 projectQueue.on("error", (err) => {
@@ -132,16 +152,27 @@ const cliparameterWorker = new Worker<CLIParameters>(
 );
 
 cliparameterWorker.on("completed", async (job, result, prev) => {
-  sendMessageToSubscribers(`cli job ${job.id} completed`);
   await CLIParametersService.updateCLIParametersProgress(job.data.id, "Completed");
+
+  const completedStatus: ServerStatus = {
+    status: "Completed",
+    message: `CLI Job with id ${job.id} has completed.`,
+  };
+
+  sendMessageToSubscribers(completedStatus);
 });
 
 cliparameterWorker.on("failed", async (job, error) => {
-  sendMessageToSubscribers(`cli job ${job?.id} failed ${error}`);
-
   if (job?.data.id) {
     await CLIParametersService.updateCLIParametersProgress(job.data.id, "Failed");
   }
+
+  const failedStatus: ServerStatus = {
+    status: "Failed",
+    message: `cli job ${job?.id} failed ${error}`,
+  };
+
+  sendMessageToSubscribers(failedStatus);
 });
 
 cliparameterWorker.on("error", (error) => {

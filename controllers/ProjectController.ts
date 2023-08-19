@@ -3,6 +3,10 @@ import ProjectService from "../services/ProjectService.js";
 import { successResult, failureResult } from "./common.js";
 import { projectQueue } from "../integrations/ProjectQueue.js";
 import { ZDatabaseId } from "../models/common.js";
+import {
+  ServerStatus,
+  sendMessageToSubscribers,
+} from "../integrations/WebsocketIntegration.js";
 
 export const getAll = async (request: Request, response: Response) => {
   const projects = await ProjectService.getAllProjects();
@@ -24,9 +28,18 @@ export const getById = async (request: Request, response: Response) => {
 export const create = async (request: Request, response: Response) => {
   const project = request.body;
   const createdProject = await ProjectService.createProject(project);
+  const jobId = `p${createdProject.id}`;
   await projectQueue.add("process-project", createdProject, {
-    jobId: `p${createdProject.id}`,
+    jobId: jobId,
   });
+
+  const queuedStatus: ServerStatus = {
+    status: "Enqueued",
+    message: `Job with id ${jobId} has been queued`,
+  };
+
+  sendMessageToSubscribers(queuedStatus);
+
   response.status(201).send(successResult(createdProject));
 };
 

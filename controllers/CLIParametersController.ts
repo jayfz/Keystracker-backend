@@ -3,6 +3,10 @@ import CLIParametersService from "../services/CLIParametersService.js";
 import { failureResult, successResult } from "./common.js";
 import { ZDatabaseId } from "../models/common.js";
 import { cliInstanceQueue } from "../integrations/ProjectQueue.js";
+import {
+  ServerStatus,
+  sendMessageToSubscribers,
+} from "../integrations/WebsocketIntegration.js";
 
 export const create = async (request: Request, response: Response) => {
   const cliParameters = request.body;
@@ -10,9 +14,17 @@ export const create = async (request: Request, response: Response) => {
     cliParameters
   );
 
+  const jobId = `c${createdCLIParameters.id}`;
   await cliInstanceQueue.add("process-parameters", createdCLIParameters, {
-    jobId: `c${createdCLIParameters.id}`,
+    jobId: jobId,
   });
+
+  const queuedStatus: ServerStatus = {
+    status: "Enqueued",
+    message: `CLI Job with id ${jobId} has been queued`,
+  };
+
+  sendMessageToSubscribers(queuedStatus);
 
   response.status(201).send(successResult(createdCLIParameters));
 };
@@ -31,10 +43,17 @@ export const update = async (request: Request, response: Response) => {
     cliParameters
   );
 
+  const jobId = `c${updatedProject.id}`;
+  const queuedStatus: ServerStatus = {
+    status: "Enqueued",
+    message: `CLI Job with id ${jobId} has been queued`,
+  };
+
   await cliInstanceQueue.add("process-parameters", updatedProject, {
-    jobId: `c${updatedProject.id}`,
+    jobId: jobId,
   });
 
+  sendMessageToSubscribers(queuedStatus);
   (await cliInstanceQueue.getJobs()).forEach((job) => console.log(job?.id));
 
   response.status(200).send(successResult(updatedProject));
